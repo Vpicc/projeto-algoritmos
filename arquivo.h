@@ -24,7 +24,7 @@ void le_texto (char texto[ ], int size_texto) // string: ponteiro implícito
      strcpy(texto, dummy); // transfere conteúdo digitado e sem o '\n' para texto
 }
 
-void carregaArquivo(){
+void carregaArquivo(/*char mat[][]*/){
     FILE *arq;
     char mat[LINHAS][COLUNAS];
     int i, j;
@@ -68,6 +68,5 @@ void carregaArquivo(){
         }
         printf("\n");
     }
-
     //fclose(arq);
 }
