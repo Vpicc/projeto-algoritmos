@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 #define COLUNAS 64
-#define LINHAS 100
-#define MAXCHAR 20
+#define LINHAS 50
+#define MAXLETRAS 20
 
 // Lida com a leitura de texto e abertura de formacoes taticas
 
@@ -31,7 +31,7 @@ void carregaArquivo(/*char mat[][]*/){
     FILE *arq;
     char mat[LINHAS][COLUNAS];
     int i, j;
-    char nome[MAXCHAR + 1];
+    char nome[MAXLETRAS + 1];
 
 /* TODO: Abrir arquivo
     fflush(stdin);
@@ -67,9 +67,9 @@ void carregaArquivo(/*char mat[][]*/){
             mat[LINHAS-10][COLUNAS-28] = 'X';
             mat[49][31] = 'O';
             //
-            printf("%c", mat[i][j]);
+            //printf("%c", mat[i][j]);
         }
-        printf("\n");
+        //printf("\n");
     }
     //fclose(arq);
 }

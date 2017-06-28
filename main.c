@@ -13,13 +13,17 @@ int main(){
 
     // Laço principal do programa
     do{
+    system("@cls||clear");
     menuPrincipal();
-    scanf("%d", opt);
+    fflush(stdin);
+    scanf("%d", &opt);
+
+    system("@cls||clear");
 
     switch(opt){
         case 1:
-            carregaArquivo(/*mat*/);
-            iniciaJogo(mat);
+            //carregaArquivo(/*mat*/);
+            iniciaJogo(mat,15);
             break;
         case 2:
             menuOpcoes();
@@ -33,6 +37,6 @@ int main(){
 
 
 
-    }while(opt != 3)
+    }while(opt != 3);
     return 0;
 }
