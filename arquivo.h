@@ -5,6 +5,9 @@
 #define LINHAS 100
 #define MAXCHAR 20
 
+// Lida com a leitura de texto e abertura de formacoes taticas
+
+
 void le_texto (char texto[ ], int size_texto) // string: ponteiro implícito
 {
      char dummy[size_texto + 1]; // cabe um caractere a mais do que no texto:

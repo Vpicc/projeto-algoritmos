@@ -5,6 +5,7 @@
 #include <windows.h>
 #include "arquivo.h"
 #include "menu.h"
+#include "jogo.h"
 
 int main(){
     int opt;
