@@ -7,7 +7,7 @@
 // Lida Com os menus de jogo e opcoes
 
 void menuPrincipal(){
-    printf("\n\n1 - Novo jogo\n");
+    printf("1 - Novo jogo\n");
     printf("2 - Opcoes\n");
     printf("3 - Fim\n");
     printf("Sua opcao: ");

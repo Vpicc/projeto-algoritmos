@@ -94,45 +94,7 @@ void movimentoJogador1(int *posXPlayer, int *posYPlayer, int lastKey[]){
 void movimentoBola(int *posX, int *posY, int *aceleracao, int posXPlayer1, int posYPlayer1, int *dirX, int *dirY, int lastKey1[]){
     int i;
 
-    // Colisoes com jogador LastKey => 0 = D 1 = A 2 = W 3 = S
-    if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[0] == 1){
-        *aceleracao = 6;
-        *dirX = 1;
-        *dirY = 0;
-    }
-    if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[1] == 1){
-        *aceleracao = 6;
-        *dirX = -1;
-        *dirY = 0;
-    }
-    if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[2] == 1){
-        *aceleracao = 6;
-        *dirY = -1;
-        *dirX = 0;
-    }
-    if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[3] == 1){
-        *aceleracao = 6;
-        *dirY = 1;
-        *dirX = 0;
-    } if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[0] == 1 && lastKey1[2] == 1){
-        *aceleracao = 6;
-        *dirX = 1;
-        *dirY = -1;
-    } if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[0] == 1 && lastKey1[3] == 1){
-        *aceleracao = 6;
-        *dirX = 1;
-        *dirY = 1;
-    }if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[1] == 1 && lastKey1[2] == 1){
-        *aceleracao = 6;
-        *dirX = -1;
-        *dirY = -1;
-    } if(*posX == posXPlayer1 && *posY == posYPlayer1 && lastKey1[1] == 1 && lastKey1[3] == 1){
-        *aceleracao = 6;
-        *dirX = -1;
-        *dirY = 1;
-    }
-
-
+    colisoesBolaJogador(posXPlayer1, posYPlayer1, posX, posY,aceleracao,dirX,dirY,lastKey1);
 
     //verifica colisoes com a parede
     if(*posX+*dirX == 0 || *posX+*dirX == WIDTH-1) *dirX*=-1;
@@ -152,5 +114,47 @@ void movimentoBola(int *posX, int *posY, int *aceleracao, int posXPlayer1, int p
     for(i = 0; i < 4; i++){
         lastKey1[i] = 0;
     }
+
+}
+
+void colisoesBolaJogador(int posXPlayer, int posYPlayer, int *posX, int *posY, int *aceleracao,int *dirX, int *dirY, int lastKey1[]){
+    // Colisoes com jogador LastKey => 0 = D 1 = A 2 = W 3 = S
+    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[0] == 1){
+        *aceleracao = 6;
+        *dirX = 1;
+        *dirY = 0;
+    }
+    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[1] == 1){
+        *aceleracao = 6;
+        *dirX = -1;
+        *dirY = 0;
+    }
+    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[2] == 1){
+        *aceleracao = 6;
+        *dirY = -1;
+        *dirX = 0;
+    }
+    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[3] == 1){
+        *aceleracao = 6;
+        *dirY = 1;
+        *dirX = 0;
+    } if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[0] == 1 && lastKey1[2] == 1){
+        *aceleracao = 6;
+        *dirX = 1;
+        *dirY = -1;
+    } if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[0] == 1 && lastKey1[3] == 1){
+        *aceleracao = 6;
+        *dirX = 1;
+        *dirY = 1;
+    }if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[1] == 1 && lastKey1[2] == 1){
+        *aceleracao = 6;
+        *dirX = -1;
+        *dirY = -1;
+    } if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[1] == 1 && lastKey1[3] == 1){
+        *aceleracao = 6;
+        *dirX = -1;
+        *dirY = 1;
+    }
+
 
 }
