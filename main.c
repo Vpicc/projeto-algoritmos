@@ -13,7 +13,6 @@ int main(){
 
     // Laço principal do programa
     do{
-    system("@cls||clear");
     menuPrincipal();
     fflush(stdin);
     scanf("%d", &opt);

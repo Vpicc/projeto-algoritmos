@@ -6,6 +6,7 @@
 #define WIDTH COLUNAS
 #define HEIGHT LINHAS
 
+
 void setCursor(int x, int y)
 {
     COORD coordinate;
@@ -17,12 +18,13 @@ void setCursor(int x, int y)
 
 void iniciaJogo(char mat[][COLUNAS], int tempo)
 {
-    int i, j, posX=WIDTH/2 + 1, posY=HEIGHT/2, dirX=1, dirY=1;
+    int i, j, posX=WIDTH/2 + 1, posY=HEIGHT/2;
     int posXPlayer=WIDTH/2, posYPlayer=HEIGHT/2;
     int start = tempo + (clock())/CLOCKS_PER_SEC;
     int t = start;
-    int aceleracao = 0;
     int lastKey[4] = {0};
+    int velocidadeInicial = 2;
+    int velocidade = velocidadeInicial;
 
     while(t) // Enquanto a tecla ESC nao for pressionada
     {
@@ -34,9 +36,9 @@ void iniciaJogo(char mat[][COLUNAS], int tempo)
         printf("Tempo: %*d\n", 2, t);
 
 
-        movimentoJogador1(&posXPlayer,&posYPlayer, lastKey);
+        movimentoJogador1(&posXPlayer,&posYPlayer, lastKey, &velocidade, velocidadeInicial);
 
-        movimentoBola(&posX, &posY, &aceleracao, posXPlayer, posYPlayer, &dirX, &dirY, lastKey);
+        movimentoBola(&posX, &posY, posXPlayer, posYPlayer, lastKey);
 
         setCursor(0, 0); //Altera a posicao do cursor para o inicio
 
@@ -62,98 +64,153 @@ void iniciaJogo(char mat[][COLUNAS], int tempo)
             printf("\n");
         }
 
-        Sleep(1000/60); //60 frames por segundo
+        Sleep(1000/120); //120 frames por segundo
     }
-    return;
+    system("@cls||clear");
 }
 
-void movimentoJogador1(int *posXPlayer, int *posYPlayer, int lastKey[]){
-    if(GetAsyncKeyState('D')){
-        if(*posXPlayer + 1 != WIDTH - 1)
-            *posXPlayer+= 1;
-        lastKey[0] = 1;
-    }
-    if(GetAsyncKeyState('A')){
-        if(*posXPlayer - 1 != 0)
-            *posXPlayer-= 1;
-        lastKey[1] = 1;
-    }
-    if(GetAsyncKeyState('W')){
-        if(*posYPlayer - 1 != 0)
-            *posYPlayer-= 1;
-        lastKey[2] = 1;
-    }
-    if(GetAsyncKeyState('S')){
-        if(*posYPlayer + 1 != HEIGHT-1)
-            *posYPlayer+= 1;
-        lastKey[3] = 1;
+void movimentoJogador1(int *posXPlayer, int *posYPlayer, int lastKey[], int *velocidade, int velocidadeInicial){
+    if(*velocidade == 0){
+        if(GetAsyncKeyState('D')){
+            if(*posXPlayer + 1 != WIDTH - 1)
+                *posXPlayer+= 1;
+            lastKey[0] = 1;
+        }
+        if(GetAsyncKeyState('A')){
+            if(*posXPlayer - 1 != 0)
+                *posXPlayer-= 1;
+            lastKey[1] = 1;
+        }
+        if(GetAsyncKeyState('W')){
+            if(*posYPlayer - 1 != 0)
+                *posYPlayer-= 1;
+            lastKey[2] = 1;
+        }
+        if(GetAsyncKeyState('S')){
+            if(*posYPlayer + 1 != HEIGHT-1)
+                *posYPlayer+= 1;
+            lastKey[3] = 1;
+        }
+        *velocidade = velocidadeInicial;
+    } else{
+        *velocidade -= 1;
     }
 
 }
 
-void movimentoBola(int *posX, int *posY, int *aceleracao, int posXPlayer1, int posYPlayer1, int *dirX, int *dirY, int lastKey1[]){
+void movimentoBola(int *posX, int *posY, int posXPlayer1, int posYPlayer1, int lastKey1[]){
     int i;
+    static int aceleracao = 0;
+    static int dirX = 1, dirY = 1;
 
-    colisoesBolaJogador(posXPlayer1, posYPlayer1, posX, posY,aceleracao,dirX,dirY,lastKey1);
+    colisoesBolaJogador(posXPlayer1, posYPlayer1, *posX, *posY,&aceleracao,&dirX,&dirY,lastKey1);
 
     //verifica colisoes com a parede
-    if(*posX+*dirX == 0 || *posX+*dirX == WIDTH-1) *dirX*=-1;
-    if(*posY+*dirY == 0 || *posY+*dirY == HEIGHT-1) *dirY*=-1;
+    if(*posX+dirX <= 0 || *posX+dirX >= WIDTH-1) dirX*=-1;
+    if(*posY+dirY <= 0 || *posY+dirY >= HEIGHT-1) dirY*=-1;
 
 
     //movimenta a bola
-    if(*aceleracao > 0){
-        *posX += *dirX;
-        *posY += *dirY;
+    if(aceleracao > 0){
+        *posX = *posX + dirX;
+        *posY = *posY + dirY;
 
-        *aceleracao = *aceleracao - 1;
 
-        printf("ACELERACAO: %d", *aceleracao);
+
+        // retorna a velocidade normal apos um chute
+
+      /*  if(dirX % 2 == 0 || dirY % 2 == 0){
+            dirX = dirX/2;
+            dirY = dirY/2;
+        }*/
+        aceleracao = aceleracao - 1;
+
+        printf("ACELERACAO: %d", aceleracao);
     }
-
     for(i = 0; i < 4; i++){
         lastKey1[i] = 0;
     }
 
 }
 
-void colisoesBolaJogador(int posXPlayer, int posYPlayer, int *posX, int *posY, int *aceleracao,int *dirX, int *dirY, int lastKey1[]){
+void colisoesBolaJogador(int posXPlayer, int posYPlayer, int posX, int posY, int *aceleracao,int *dirX, int *dirY, int lastKey[]){
+    static int cnt = 0;
+    int chute = 0;
     // Colisoes com jogador LastKey => 0 = D 1 = A 2 = W 3 = S
-    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[0] == 1){
-        *aceleracao = 6;
-        *dirX = 1;
-        *dirY = 0;
+    if(posX == posXPlayer && posY == posYPlayer){
+        *aceleracao = 1;
+        if(lastKey[0] == 1){
+            *dirX = 1;
+            *dirY = 0;
+        }
+        if(lastKey[1] == 1){
+            *dirX = -1;
+            *dirY = 0;
+        }
+        if(lastKey[2] == 1){
+            *dirY = -1;
+            *dirX = 0;
+        }
+        if(lastKey[3] == 1){
+            *dirY = 1;
+            *dirX = 0;
+        }
+        if(lastKey[0] == 1 && lastKey[2] == 1){
+            *dirX = 1;
+            *dirY = -1;
+        }
+        if(lastKey[0] == 1 && lastKey[3] == 1){
+             *dirX = 1;
+            *dirY = 1;
+        }
+        if(lastKey[1] == 1 && lastKey[2] == 1){
+            *dirX = -1;
+            *dirY = -1;
+        }
+        if(lastKey[1] == 1 && lastKey[3] == 1){
+            *dirX = -1;
+            *dirY = 1;
+        }
+
+        cnt++;
+
+        // Chute longo
+        if(GetAsyncKeyState('X')){
+            chute = 1;
+            cnt = 0;
+        }
     }
-    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[1] == 1){
-        *aceleracao = 6;
-        *dirX = -1;
-        *dirY = 0;
+
+    // Faz o chute só funcionar quando esta encostado na bola e apertou a tecla de chute
+    GetAsyncKeyState('X');
+
+    // Se a tecla de chute longo foi pressionada
+    if(chute == 1){
+        // Se a bola for para frente
+        if((dirX && !dirY) || !dirX && dirY){
+            /*dirX = *dirX*4;
+            *dirY = *dirY*4;*/
+            *aceleracao = 9;
+        } else if(dirX && dirY){ // Se a bola for para a diagonal
+           /* *dirX = *dirX*4;
+            *dirY = *dirY*4;*/
+            *aceleracao = 5;
+        } // Isso evita que a bota vá muito para frente quando o chute for para a diagonal
+        chute = 0;
     }
-    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[2] == 1){
-        *aceleracao = 6;
-        *dirY = -1;
-        *dirX = 0;
-    }
-    if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[3] == 1){
-        *aceleracao = 6;
-        *dirY = 1;
-        *dirX = 0;
-    } if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[0] == 1 && lastKey1[2] == 1){
-        *aceleracao = 6;
-        *dirX = 1;
-        *dirY = -1;
-    } if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[0] == 1 && lastKey1[3] == 1){
-        *aceleracao = 6;
-        *dirX = 1;
-        *dirY = 1;
-    }if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[1] == 1 && lastKey1[2] == 1){
-        *aceleracao = 6;
-        *dirX = -1;
-        *dirY = -1;
-    } if(*posX == posXPlayer && *posY == posYPlayer && lastKey1[1] == 1 && lastKey1[3] == 1){
-        *aceleracao = 6;
-        *dirX = -1;
-        *dirY = 1;
+    // Apos 2m de conducao, chuta
+    if(cnt == 2){
+        // Se a bola for para frente
+        if((dirX && !dirY) || !dirX && dirY){
+           /* *dirX = *dirX*2;
+            *dirY = *dirY*2;*/
+            *aceleracao = 6;
+        } else if(dirX && dirY){ // Se a bola for para a diagonal
+          /*  *dirX = *dirX*2;
+            *dirY = *dirY*2;*/
+            *aceleracao = 3;
+        } // Isso evita que a bota vá muito para frente quando o chute for para a diagonal
+        cnt = 0;
     }
 
 
