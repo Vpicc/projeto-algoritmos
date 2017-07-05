@@ -261,6 +261,7 @@ void le_texto (char texto[ ], int size_texto) // string: ponteiro implícito
      strcpy(texto, dummy); // transfere conteúdo digitado e sem o '\n' para texto
 }
 
+// Funcao que carrega a formacao dos jogadores e retorna o numero de jogadores em campo
 int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
     FILE *arq;
     char mat[FORMACAO_Y][FORMACAO_X];
@@ -269,16 +270,18 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
     int n_jogadores = 0;
     //Abrir arquivo
     fflush(stdin);
-    printf("Inisira o nome do arquivo de formacao: ");
+    printf("Insira o nome do arquivo de formacao: ");
     le_texto(nome,sizeof(nome));
-
+    // Abre o arquivo de texto para leitura
     if(!(arq = fopen(nome, "r"))){
         printf("Erro na abertura");
         return 0;
     } else{
 
+    // Garante que o ponteiro esteja no inicio do arquivo
     fseek(arq, 0, SEEK_SET);
 
+    // Registra a posição inicial dos jogadores
     for(i = 0; i < FORMACAO_Y; i++){
         for(j = 0; j < FORMACAO_X; j++){
             mat[i][j] = getc(arq);
@@ -292,9 +295,10 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
         printf("\n");
     }
 
+    // Copia a formacao para o segundo jogador
     for(i = 0; i < n_jogadores; i++){
         jogador2[i].x = jogador1[i].x;
-        jogador2[i].y = jogador1[i].y + 30;
+        jogador2[i].y = LINHAS - jogador1[i].y;
     }
 
     fclose(arq);
