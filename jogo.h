@@ -3,7 +3,7 @@
 #include <conio.h>
 #include <time.h>
 
-#define COLUNAS 64
+#define COLUNAS 65
 #define LINHAS 62
 #define MAXLETRAS 20
 #define FORMACAO_X 60
