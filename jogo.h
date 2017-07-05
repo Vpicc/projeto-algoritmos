@@ -75,11 +75,15 @@ void iniciaJogo(char mat[][COLUNAS], int tempo)
     system("@cls||clear");
 }
 
+// Funcao de movimentacao de todos os personagens do jogador 1
 void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
     int i, j;
     int flag[4] = {0};
     int flagParede[4] = {0};
+
+    //  velocidade Define a velocidade dos jogadores
     if(*velocidade == 0){
+            // A flag detecta qual tecla foi pressionada e lastKey detecta a ultima tecla que foi pressionada
             if(GetAsyncKeyState('D')){
                 flag[0] = 1;
                 lastKey[0] = 1;
@@ -101,7 +105,8 @@ void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
                 lastKey[3] = 1;
             }
 
-
+            // Para cada direcao escolhida para o movimento, primeiro checa se não ha nenhum jogador encostado na parede, depois movimenta
+            // FlagParede diz se um jogador esta encostado em uma parede
             if(flag[0] == 1){
                 for(i = 0; i < n_jogadores; i++){
                     if(jogador[i].x + 1 >= WIDTH - 1){
@@ -150,14 +155,17 @@ void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
                         jogador[i].y+= 1;
                 }
            }
-
+        // Faz com que a velocidade do jogador volte a seu valor inicial
         *velocidade = velocidadeInicial;
     } else{
+        // Se velocidade nao for zero, diminui da velocidade
         *velocidade -= 1;
     }
 
 }
 
+// Funcao de movimentacao de todos os personagens do jogador 2, Cópia da funcao movimentoJogador1, só mudam as teclas que são checadas
+// Teclas checadas: flechas do teclado
 void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
     int i, j;
     int flag[4] = {0};
