@@ -61,9 +61,9 @@ void iniciaJogo(char mat[][COLUNAS], int tempo)
         printf("Tempo: %*d\t", 2, t);
 
             movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
-
             movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
-           // movimentoBola(&bola.x, &bola.y, jogador1[i].x, jogador1[i].y, lastKey);
+
+            movimentoBola(&bola, jogador1, jogador2, lastKey1, lastKey2, n_jogadores);
 
 
         setCursor(0, 0); //Altera a posicao do cursor para o inicio
@@ -250,22 +250,23 @@ void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
 
 }
 
-void movimentoBola(int *posX, int *posY, int posXPlayer1, int posYPlayer1, int lastKey1[]){
+void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastKey1[], int lastKey2[], int n_jogadores){
     int i;
     static int aceleracao = 0;
-    static int dirX = 1, dirY = 1;
+    static int dirX = 0, dirY = 0;
 
-    colisoesBolaJogador(posXPlayer1, posYPlayer1, *posX, *posY,&aceleracao,&dirX,&dirY,lastKey1);
+    colisoesBolaJogador(jogador1, bola, &aceleracao, &dirX, &dirY, lastKey1, n_jogadores);
+    colisoesBolaJogador(jogador2, bola, &aceleracao, &dirX, &dirY, lastKey2, n_jogadores);
 
     //verifica colisoes com a parede
-    if(*posX+dirX <= 0 || *posX+dirX >= WIDTH-1) dirX*=-1;
-    if(*posY+dirY <= 0 || *posY+dirY >= HEIGHT-1) dirY*=-1;
+    if(bola->x+dirX <= 0 || bola->x+dirX >= WIDTH-1) dirX*=-1;
+    if(bola->y+dirY <= 0 || bola->y+dirY >= HEIGHT-1) dirY*=-1;
 
 
     //movimenta a bola
     if(aceleracao > 0){
-        *posX = *posX + dirX;
-        *posY = *posY + dirY;
+        bola->x = bola->x + dirX;
+        bola->y = bola->y + dirY;
 
         aceleracao = aceleracao - 1;
 
@@ -274,49 +275,76 @@ void movimentoBola(int *posX, int *posY, int posXPlayer1, int posYPlayer1, int l
     for(i = 0; i < 4; i++){
         lastKey1[i] = 0;
     }
+    for(i = 0; i < 4; i++){
+        lastKey2[i] = 0;
+    }
+
 
 }
 
-void colisoesBolaJogador(int posXPlayer, int posYPlayer, int posX, int posY, int *aceleracao,int *dirX, int *dirY, int lastKey[]){
+void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dirX, int *dirY, int lastKey[], int n_jogadores){
     static int cnt = 0;
     int chute = 0;
-    // Colisoes com jogador LastKey => 0 = D 1 = A 2 = W 3 = S
-    if(posX == posXPlayer && posY == posYPlayer){
-        *aceleracao = 1;
-        if(lastKey[0] == 1){
-            *dirX = 1;
-            *dirY = 0;
-        }
-        if(lastKey[1] == 1){
-            *dirX = -1;
-            *dirY = 0;
-        }
-        if(lastKey[2] == 1){
-            *dirY = -1;
-            *dirX = 0;
-        }
-        if(lastKey[3] == 1){
-            *dirY = 1;
-            *dirX = 0;
-        }
+    int i;
+
+     //if((posX <= jogador[0].x + 1 && posX >= jogador[0].x - 1  )&& (posY <= jogador[0].y + 1 && posY >= jogador[0].y - 1 ))
+    // Colisoes com jogador LastKey => 0 = Direita 1 = Esquerda 2 = Cima 3 = Baixo
+
+    //if((posX == jogador[0].x && posY == jogador[0].y)){
+    for(i = 0; i < n_jogadores; i++){
+    if((bola->x <= jogador[i].x + 1 && bola->x >= jogador[i].x - 1  )&& (bola->y <= jogador[i].y + 1 && bola->y >= jogador[i].y - 1 )){
+        //*aceleracao = 1;
         if(lastKey[0] == 1 && lastKey[2] == 1){
+            bola->x = jogador[i].x + 1;
+            bola->y = jogador[i].y - 1;
             *dirX = 1;
             *dirY = -1;
-        }
-        if(lastKey[0] == 1 && lastKey[3] == 1){
-             *dirX =1;
+            cnt++;
+        }else if(lastKey[0] == 1 && lastKey[3] == 1){
+            bola->x = jogador[i].x + 1;
+            bola->y = jogador[i].y + 1;
+            *dirX =1;
             *dirY = 1;
-        }
-        if(lastKey[1] == 1 && lastKey[2] == 1){
+            cnt++;
+        }else if(lastKey[1] == 1 && lastKey[2] == 1){
+            bola->x = jogador[i].x - 1;
+            bola->y = jogador[i].y - 1;
             *dirX = -1;
             *dirY = -1;
-        }
-        if(lastKey[1] == 1 && lastKey[3] == 1){
+            cnt++;
+        }else if(lastKey[1] == 1 && lastKey[3] == 1){
+            bola->x = jogador[i].x - 1;
+            bola->y = jogador[i].y + 1;
             *dirX = -1;
             *dirY = 1;
+            cnt++;
+        }else if(lastKey[0] == 1){
+            bola->x = jogador[i].x + 1;
+            bola->y = jogador[i].y;
+            *dirX = 1;
+            *dirY = 0;
+            cnt++;
+        }else if(lastKey[1] == 1){
+            bola->x = jogador[i].x - 1;
+            bola->y = jogador[i].y;
+            *dirX = -1;
+            *dirY = 0;
+            cnt++;
+        } else if(lastKey[2] == 1){
+            bola->y = jogador[i].y - 1;
+            bola->x = jogador[i].x;
+           *dirY = -1;
+            *dirX = 0;
+            cnt++;
+        }else if(lastKey[3] == 1){
+            bola->y = jogador[i].y + 1;
+            bola->x = jogador[i].x;
+           *dirY = 1;
+            *dirX = 0;
+            cnt++;
         }
 
-        cnt++;
+        // TODO: inversao de direcao
 
         // Chute longo
         if(GetAsyncKeyState('X')){
@@ -324,6 +352,8 @@ void colisoesBolaJogador(int posXPlayer, int posYPlayer, int posX, int posY, int
             cnt = 0;
         }
     }
+    }
+
 
     // Faz o chute só funcionar quando esta encostado na bola e apertou a tecla de chute
     GetAsyncKeyState('X');
