@@ -434,17 +434,17 @@ void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], BOLA bola, char mat[][C
                         mat[i][j] = ' ';
                     }
                 } else{
-                    mat[i][j] = '_';
+                    mat[i][j] = ' ';
                 }
                 if(bola.x == j && bola.y == i) mat[i][j] = 'O';
                 for(k = 0; k < n_jogadores; k++){
                     if(jogador1[k].x == j && jogador1[k].y == i) mat[i][j] = 'W';
                     if(jogador2[k].x == j && jogador2[k].y == i) mat[i][j] = 'M';
                 }
-                printf("%c", mat[i][j]);
 
             }
-            printf("\n");
+            mat[i][j] = '\0';
+            puts(mat[i]);
         }
 }
 
