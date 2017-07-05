@@ -3,32 +3,35 @@
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
-#include "arquivo.h"
-#include "menu.h"
 #include "jogo.h"
+#include "menu.h"
+
 
 int main(){
-    int opt;
+    char opt;
     char mat[LINHAS][COLUNAS];
+    JOGADOR jogador1[11];
+    JOGADOR jogador2[11];
 
     // Laço principal do programa
     do{
     menuPrincipal();
-    fflush(stdin);
-    scanf("%d", &opt);
+
+    scanf("%c", &opt);
+
+    //opt = getc(stdin);
 
     system("@cls||clear");
 
     switch(opt){
-        case 1:
-            //carregaArquivo(/*mat*/);
+        case '1':
             iniciaJogo(mat,15);
             break;
-        case 2:
+        case '2':
             menuOpcoes();
 
             break;
-        case 3:
+        case '3':
             break;
         default:
             printf("Opcao invalida\n");
@@ -36,6 +39,6 @@ int main(){
 
 
 
-    }while(opt != 3);
+    }while(opt != '3');
     return 0;
 }
