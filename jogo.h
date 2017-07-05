@@ -8,6 +8,7 @@
 #define MAXLETRAS 20
 #define FORMACAO_X 60
 #define FORMACAO_Y 30
+#define MAXJOGADORES 11
 
 #define WIDTH COLUNAS
 #define HEIGHT LINHAS
@@ -35,8 +36,8 @@ void setCursor(int x, int y)
 void iniciaJogo(char mat[][COLUNAS], int tempo)
 {
     // Numero maximo de jogadores em campo: 11
-    JOGADOR jogador1[11];
-    JOGADOR jogador2[11];
+    JOGADOR jogador1[MAXJOGADORES];
+    JOGADOR jogador2[MAXJOGADORES];
     int n_jogadores = 0;
     BOLA bola;
     bola.x = COLUNAS/2;
@@ -401,6 +402,9 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
             jogador1[n_jogadores].x = j+2;
             jogador1[n_jogadores].y = i;
             n_jogadores++;
+            }
+            if(n_jogadores > MAXJOGADORES){
+                n_jogadores = MAXJOGADORES;
             }
             printf("%c", mat[i][j]);
         }
