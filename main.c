@@ -25,7 +25,7 @@ int main(){
 
     switch(opt){
         case '1':
-            iniciaJogo(mat,15);
+            iniciaJogo(mat,60);
             break;
         case '2':
             menuOpcoes();

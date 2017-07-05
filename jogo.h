@@ -39,81 +39,201 @@ void iniciaJogo(char mat[][COLUNAS], int tempo)
     JOGADOR jogador2[11];
     int n_jogadores = 0;
     BOLA bola;
-    int i, j, k, posX=WIDTH/2 + 1, posY=HEIGHT/2;
-    int posXPlayer=WIDTH/2, posYPlayer=HEIGHT/2;
+    bola.x = COLUNAS/2;
+    bola.y = LINHAS/2;
+    int i;
     int start = tempo + (clock())/CLOCKS_PER_SEC;
     int t = start;
-    int lastKey[4] = {0};
+    int lastKey1[4] = {0};
+    int lastKey2[4] = {0};
     int velocidadeInicial = 1;
-    int velocidade = velocidadeInicial;
+    int velocidade1 = velocidadeInicial;
+    int velocidade2 = velocidadeInicial;
 
     n_jogadores = carregaFormacao(jogador1,jogador2);
 
+    if(n_jogadores > 0){
     while(t) // Enquanto a tecla ESC nao for pressionada
     {
 
         t = start - clock()/CLOCKS_PER_SEC;
         printf("Tempo: %*d\t", 2, t);
 
+            movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
 
-        movimentoJogador1(&posXPlayer,&posYPlayer, lastKey, &velocidade, velocidadeInicial);
+            movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
+           // movimentoBola(&bola.x, &bola.y, jogador1[i].x, jogador1[i].y, lastKey);
 
-        movimentoBola(&posX, &posY, posXPlayer, posYPlayer, lastKey);
 
         setCursor(0, 0); //Altera a posicao do cursor para o inicio
 
-
-        for(i=0; i<HEIGHT; i++){ //desenha a tela
-            for(j=0; j<WIDTH; j++){
-                if(i == 0 || j == 0 || i == LINHAS-1 || j == COLUNAS -1){
-                mat[i][j] = '#';
-                if(j >= 25 && j<= 37){
-                    mat[i][j] = ' ';
-                }
-            } else if(i > 20 && i <= 50) {
-               mat[i][j] = '_';
-            } else{
-                mat[i][j] = '_';
-            }
-            if(posX == j && posY == i) mat[i][j] = 'O';
-            if(posXPlayer == j && posYPlayer == i) mat[i][j] = 'A';
-                for(k = 0; k < n_jogadores; k++){
-                    if(jogador1[k].x == j && jogador1[k].y == i) mat[i][j] = 'W';
-                    if(jogador2[k].x == j && jogador2[k].y == i) mat[i][j] = 'M';
-                }
-                printf("%c", mat[i][j]);
-
-            }
-            printf("\n");
-        }
+        desenhaTela(jogador1, jogador2, bola, mat, n_jogadores);
 
         Sleep(1000/30); //30 frames por segundo
+    }
     }
     system("@cls||clear");
 }
 
-void movimentoJogador1(int *posXPlayer, int *posYPlayer, int lastKey[],int *velocidade, int velocidadeInicial){
+void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
+    int i, j;
+    int flag[4] = {0};
+    int flagParede[4] = {0};
     if(*velocidade == 0){
-        if(GetAsyncKeyState('D')){
-            if(*posXPlayer + 1 != WIDTH - 1)
-                *posXPlayer+= 1;
-            lastKey[0] = 1;
-        }
-        if(GetAsyncKeyState('A')){
-            if(*posXPlayer - 1 != 0)
-                *posXPlayer-= 1;
-            lastKey[1] = 1;
-        }
-        if(GetAsyncKeyState('W')){
-            if(*posYPlayer - 1 != 0)
-                *posYPlayer-= 1;
-            lastKey[2] = 1;
-        }
-        if(GetAsyncKeyState('S')){
-            if(*posYPlayer + 1 != HEIGHT-1)
-                *posYPlayer+= 1;
-            lastKey[3] = 1;
-        }
+            if(GetAsyncKeyState('D')){
+                flag[0] = 1;
+                lastKey[0] = 1;
+
+            }
+            if(GetAsyncKeyState('A')){
+                flag[1] = 1;
+
+                lastKey[1] = 1;
+            }
+            if(GetAsyncKeyState('W')){
+                flag[2] = 1;
+
+                lastKey[2] = 1;
+            }
+            if(GetAsyncKeyState('S')){
+                flag[3] = 1;
+
+                lastKey[3] = 1;
+            }
+
+
+            if(flag[0] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].x + 1 >= WIDTH - 1){
+                        flagParede[0] = 1;
+                    }
+                }
+                for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[0] == 0)
+                        jogador[i].x+= 1;
+                }
+           }
+
+            if(flag[1] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].x - 1 <= 0){
+                      flagParede[1] = 1;
+                    }
+                }
+                for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[1] == 0)
+                        jogador[i].x-= 1;
+                }
+           }
+
+            if(flag[2] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].y  - 1 <= 0){
+                        flagParede[2] = 1;
+                    }
+                }
+                 for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[2] == 0){
+                        jogador[i].y-= 1;
+                    }
+                 }
+           }
+
+            if(flag[3] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].y + 1 >= HEIGHT-1){
+                        flagParede[3] = 1;
+                    }
+                }
+                for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[3] == 0)
+                        jogador[i].y+= 1;
+                }
+           }
+
+        *velocidade = velocidadeInicial;
+    } else{
+        *velocidade -= 1;
+    }
+
+}
+
+void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
+    int i, j;
+    int flag[4] = {0};
+    int flagParede[4] = {0};
+    if(*velocidade == 0){
+            if(GetAsyncKeyState(39)){
+                flag[0] = 1;
+                lastKey[0] = 1;
+
+            }
+            if(GetAsyncKeyState(37)){
+                flag[1] = 1;
+
+                lastKey[1] = 1;
+            }
+            if(GetAsyncKeyState(38)){
+                flag[2] = 1;
+
+                lastKey[2] = 1;
+            }
+            if(GetAsyncKeyState(40)){
+                flag[3] = 1;
+
+                lastKey[3] = 1;
+            }
+
+
+            if(flag[0] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].x + 1 >= WIDTH - 1){
+                        flagParede[0] = 1;
+                    }
+                }
+                for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[0] == 0)
+                        jogador[i].x+= 1;
+                }
+           }
+
+            if(flag[1] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].x - 1 <= 0){
+                      flagParede[1] = 1;
+                    }
+                }
+                for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[1] == 0)
+                        jogador[i].x-= 1;
+                }
+           }
+
+            if(flag[2] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].y  - 1 <= 0){
+                        flagParede[2] = 1;
+                    }
+                }
+                 for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[2] == 0){
+                        jogador[i].y-= 1;
+                    }
+                 }
+           }
+
+            if(flag[3] == 1){
+                for(i = 0; i < n_jogadores; i++){
+                    if(jogador[i].y + 1 >= HEIGHT-1){
+                        flagParede[3] = 1;
+                    }
+                }
+                for(i = 0; i < n_jogadores; i++){
+                    if(flagParede[3] == 0)
+                        jogador[i].y+= 1;
+                }
+           }
+
         *velocidade = velocidadeInicial;
     } else{
         *velocidade -= 1;
@@ -138,14 +258,6 @@ void movimentoBola(int *posX, int *posY, int posXPlayer1, int posYPlayer1, int l
         *posX = *posX + dirX;
         *posY = *posY + dirY;
 
-
-
-        // retorna a velocidade normal apos um chute
-
-      /*  if(dirX % 2 == 0 || dirY % 2 == 0){
-            dirX = dirX/2;
-            dirY = dirY/2;
-        }*/
         aceleracao = aceleracao - 1;
 
         printf("ACELERACAO: %d", aceleracao);
@@ -210,12 +322,8 @@ void colisoesBolaJogador(int posXPlayer, int posYPlayer, int posX, int posY, int
     // Se a tecla de chute longo foi pressionada
     if(chute == 1){
         if(*dirX && !*dirY){ // Se a bola for para os lados
-            /*dirX = *dirX*4;
-            *dirY = *dirY*4;*/
             *aceleracao = 20;
         } else if(*dirX && *dirY){ // Se a bola for para a diagonal
-           /* *dirX = *dirX*4;
-            *dirY = *dirY*4;*/
             *aceleracao = 15;// Isso evita que a bota vá muito para frente quando o chute for para a diagonal
         } else if(!*dirX && *dirY){ // Se a bola for para frente
             *aceleracao = 20;
@@ -226,12 +334,8 @@ void colisoesBolaJogador(int posXPlayer, int posYPlayer, int posX, int posY, int
     if(cnt == 3){
 
         if(*dirX != 0 && !*dirY){ // Se a bola for para os lados
-           /* *dirX = *dirX*2;
-            *dirY = *dirY*2;*/
             *aceleracao = 6;
         } else if(*dirX && *dirY){ // Se a bola for para a diagonal
-          /*  *dirX = *dirX*2;
-            *dirY = *dirY*2;*/
             *aceleracao = 3; // Isso evita que a bota vá muito para frente quando o chute for para a diagonal
         } else if(!*dirX && *dirY){ // Se a bola for para frente
             *aceleracao = 4;
@@ -295,7 +399,7 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
         printf("\n");
     }
 
-    // Copia a formacao para o segundo jogador
+    // Copia a formacao para o segundo jogador, espelhada
     for(i = 0; i < n_jogadores; i++){
         jogador2[i].x = jogador1[i].x;
         jogador2[i].y = LINHAS - jogador1[i].y;
@@ -303,6 +407,32 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
 
     fclose(arq);
     }
+    // retorna o numero de jogadores
     return n_jogadores;
+}
+
+// Funcao que desenha o jogo
+void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], BOLA bola, char mat[][COLUNAS], int n_jogadores){
+    int i, j, k;
+    for(i=0; i<HEIGHT; i++){
+            for(j=0; j<WIDTH; j++){
+                if(i == 0 || j == 0 || i == LINHAS-1 || j == COLUNAS -1){
+                    mat[i][j] = '#';
+                    if(j >= 25 && j<= 37){
+                        mat[i][j] = ' ';
+                    }
+                } else{
+                    mat[i][j] = '_';
+                }
+                if(bola.x == j && bola.y == i) mat[i][j] = 'O';
+                for(k = 0; k < n_jogadores; k++){
+                    if(jogador1[k].x == j && jogador1[k].y == i) mat[i][j] = 'W';
+                    if(jogador2[k].x == j && jogador2[k].y == i) mat[i][j] = 'M';
+                }
+                printf("%c", mat[i][j]);
+
+            }
+            printf("\n");
+        }
 }
 
