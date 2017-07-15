@@ -9,7 +9,7 @@
 
 int main(){
     int opt;
-    int tempo = 3;
+    int tempo = 60;
     int tamGol = 0;
     static int velocidade = 1; // static evita um bug em que a velocidade zera apos um jogo
     char mat[LINHAS][COLUNAS];

@@ -29,6 +29,7 @@ typedef struct{
 // cria o tipo goleiro
 typedef struct{
     int x;
+    int y;
 } GOLEIRO;
 
 typedef struct{
@@ -70,6 +71,10 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
     bola.x = COLUNAS/2;
     bola.y = LINHAS/2;
     int n_jogadores = 0;
+    goleiro1.y = 0;
+    goleiro1.x = WIDTH/2;
+    goleiro2.y = HEIGHT-1;
+    goleiro2.x = WIDTH/2;
 
     // Carrega a formação em arquivo de texto e retorna o numero de jogadores
     n_jogadores = carregaFormacao(jogador1,jogador2);
@@ -90,7 +95,8 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
         t = start - clock()/CLOCKS_PER_SEC;
         //printf("Tempo: %*d\t", 2, t);
         imprimeTempoPontuacao(t, pontosDoJogo);
-            //movimentoGoleiro();
+        movimentoGoleiro(bola, &goleiro1, 'D', 'A', velocidade1, velocidadeInicial, lastKey1,tamGol);
+        movimentoGoleiro(bola, &goleiro2, 39, 37, velocidade2, velocidadeInicial, lastKey2,tamGol);
         movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
         movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
 
@@ -107,7 +113,7 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
 
         setCursor(0, 0); // Altera a posicao do cursor para o inicio
 
-        desenhaTela(jogador1, jogador2, bola, mat, n_jogadores, tamGol);
+        desenhaTela(jogador1, jogador2, goleiro1, goleiro2, bola, mat, n_jogadores, tamGol);
 
         Sleep(1000/30); //30 frames por segundo
 
@@ -125,7 +131,7 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
 
 }
 
-// Funcao de movimentacao de todos os personagens do jogador 1
+// Funcao de movimentacao de todos os personagens do jogadmovimentoGoleiro(bola,goleiro1,'D','A',&velocidade,velocidadeInicial,lastKey1);or 1
 void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
     int i, j;
     int flag[4] = {0};
@@ -301,6 +307,45 @@ void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
 
 }
 
+void movimentoGoleiro(BOLA bola, GOLEIRO *goleiro, int esquerda, int direita, int velocidade, int velocidadeInicial, int lastKey[], int tamGol){
+    // Quando o goleiro está conduzindo a bola, o jogador movimenta o goleiro
+        if((bola.x <= goleiro->x + 1 && bola.x >= goleiro->x - 1  )&& (bola.y <= goleiro->y + 1 && bola.y >= goleiro->y - 1 )){
+             if(velocidade == 0){
+                // A flag detecta qual tecla foi pressionada e lastKey detecta a ultima tecla que foi pressionada
+                if(GetAsyncKeyState(direita)){
+                    lastKey[0] = 1;
+                    if(goleiro->x + 1 <= LIMDIRGOL - tamGol/2){
+                            goleiro->x += 1;
+                        }
+                }
+
+                if(GetAsyncKeyState(esquerda)){
+                    if(goleiro->x - 1 >= LIMESQGOL + tamGol/2){
+                            goleiro->x -= 1;
+                    }
+                }
+
+            }
+        } else{
+            // Quando o goleiro não está conduzindo a bola, ele se mexe automaticamente
+            if(velocidade == 0){
+                if(goleiro->x > bola.x){
+                    if(goleiro->x - 1 >= LIMESQGOL + tamGol/2){
+                        goleiro->x = goleiro->x - 1;
+                    }
+                } else if(goleiro->x < bola.x){
+                    if(goleiro->x + 1 <= LIMDIRGOL - tamGol/2){
+                        goleiro->x = goleiro->x + 1;
+                    }
+
+                }
+            }
+
+        }
+
+
+}
+
 void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastKey1[], int lastKey2[], int n_jogadores, int tamGol, int *aceleracao){
     int i;
     static int dirX = 0, dirY = 0;
@@ -459,7 +504,7 @@ void resetaPosicoesGol(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], JOGAD
 }
 
 void imprimeTempoPontuacao(int t, PONTUACAO score){
-    printf("Tempo: %*d\tTime 1: %d\tTime 2:%d\t", 2, t, score.pontosJog1, score.pontosJog2);
+    printf("Tempo: %*d\tTime 1: %d\tTime 2: %d\t", 2, t, score.pontosJog1, score.pontosJog2);
 }
 
 void le_texto (char texto[ ], int size_texto) // string: ponteiro implícito
@@ -531,7 +576,7 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
 }
 
 // Funcao que desenha o jogo
-void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], BOLA bola, char mat[][COLUNAS], int n_jogadores, int tamGol){
+void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], GOLEIRO goleiro1, GOLEIRO goleiro2, BOLA bola, char mat[][COLUNAS], int n_jogadores, int tamGol){
     int i, j, k;
     for(i=0; i<HEIGHT; i++){
             for(j=0; j<WIDTH; j++){
@@ -548,6 +593,8 @@ void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], BOLA bola, char mat[][C
                     if(jogador1[k].x == j && jogador1[k].y == i) mat[i][j] = 'W';
                     if(jogador2[k].x == j && jogador2[k].y == i) mat[i][j] = 'M';
                 }
+                if(goleiro1.x == j && goleiro1.y == i) mat[i][j] = 'W';
+                if(goleiro2.x == j && goleiro2.y == i) mat[i][j] = 'M';
 
             }
             mat[i][j] = '\0';
