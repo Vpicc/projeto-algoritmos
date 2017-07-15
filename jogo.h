@@ -112,11 +112,6 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
 
         resetaPosicoesGol(&bola, jogador1, jogador2, posicaoInicialJogador1, posicaoInicialJogador2, n_jogadores, &aceleracao);
 
-
-
-
-
-
         setCursor(0, 0); // Altera a posicao do cursor para o inicio
 
         desenhaTela(jogador1, jogador2, goleiro1, goleiro2, bola, mat, n_jogadores, tamGol);
@@ -647,12 +642,26 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
     int n_jogadores = 0;
     //Abrir arquivo
     fflush(stdin);
-    printf("Insira o nome do arquivo de formacao: ");
+    printf("Insira o nome do arquivo de formacao(NULL para formacao original): ");
     le_texto(nome,sizeof(nome));
     // Abre o arquivo de texto para leitura
     if(!(arq = fopen(nome, "r"))){
-        printf("Erro na abertura");
-        return 0;
+        printf("Nome invalido, iniciando formacao original\n");
+        Sleep(2000);
+        n_jogadores = 3;
+        jogador1[0].x = 25;
+        jogador1[0].y = 7;
+        jogador1[1].x = 35;
+        jogador1[1].y = 7;
+        jogador1[2].x = 30;
+        jogador1[2].y = 10;
+
+        // Copia a formacao para o segundo jogador, espelhada
+        for(i = 0; i < n_jogadores; i++){
+            jogador2[i].x = jogador1[i].x;
+            jogador2[i].y = LINHAS - jogador1[i].y;
+        }
+        return n_jogadores;
     } else{
 
     // Garante que o ponteiro esteja no inicio do arquivo
