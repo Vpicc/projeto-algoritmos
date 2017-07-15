@@ -66,6 +66,7 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
     int velocidade1 = velocidadeInicial;
     int velocidade2 = velocidadeInicial;
     PONTUACAO pontosDoJogo;
+    PONTUACAO pontosAnteriores;
     pontosDoJogo.pontosJog1 = 0;
     pontosDoJogo.pontosJog2 = 0;
     bola.x = COLUNAS/2;
@@ -83,7 +84,7 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
             posicaoInicialJogador1[i] = jogador1[i];
             posicaoInicialJogador2[i] = jogador2[i];
         }
-
+    leRecorde(&pontosDoJogo,&pontosAnteriores);
     // Inicia contagem de tempo
     start = tempo + (clock())/CLOCKS_PER_SEC;
     t = start;
@@ -94,13 +95,13 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
 
         t = start - clock()/CLOCKS_PER_SEC;
         //printf("Tempo: %*d\t", 2, t);
-        imprimeTempoPontuacao(t, pontosDoJogo);
-        movimentoGoleiro(bola, &goleiro1, 'D', 'A', velocidade1, velocidadeInicial, lastKey1,tamGol);
-        movimentoGoleiro(bola, &goleiro2, 39, 37, velocidade2, velocidadeInicial, lastKey2,tamGol);
+        imprimeTempoPontuacao(t, pontosDoJogo, pontosAnteriores);
+        movimentoGoleiro(bola, &goleiro1, 'A', 'D', velocidade1, velocidadeInicial, lastKey1,tamGol);
+        movimentoGoleiro(bola, &goleiro2, 37, 39, velocidade2, velocidadeInicial, lastKey2,tamGol);
         movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
         movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
 
-        movimentoBola(&bola, jogador1, jogador2, lastKey1, lastKey2, n_jogadores, tamGol, &aceleracao);
+        movimentoBola(&bola, jogador1, jogador2, goleiro1, goleiro2, lastKey1, lastKey2, n_jogadores, tamGol, &aceleracao);
 
         scoreDoJogo(bola, &pontosDoJogo);
 
@@ -123,6 +124,7 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
         }
     }
     }
+    gravaRecorde(pontosDoJogo);
     // Limpa a tela
     system("@cls||clear");
     printf("Fim de jogo\n");
@@ -320,6 +322,7 @@ void movimentoGoleiro(BOLA bola, GOLEIRO *goleiro, int esquerda, int direita, in
                 }
 
                 if(GetAsyncKeyState(esquerda)){
+                    lastKey[1] = 1;
                     if(goleiro->x - 1 >= LIMESQGOL + tamGol/2){
                             goleiro->x -= 1;
                     }
@@ -346,13 +349,72 @@ void movimentoGoleiro(BOLA bola, GOLEIRO *goleiro, int esquerda, int direita, in
 
 }
 
-void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastKey1[], int lastKey2[], int n_jogadores, int tamGol, int *aceleracao){
+void gravaRecorde(PONTUACAO score){
+    FILE *arq;
+
+    PONTUACAO scoreAnterior;
+    if(!(arq = fopen("record.bin", "r+b"))){
+        if(!(arq = fopen("record.bin","w+b"))){
+            printf("Erro na abertura");
+            return;
+        }
+    } else{
+        // Garante que o ponteiro esteja no inicio do arquivo
+        fseek(arq, 0, SEEK_SET);
+
+        if(fread(&scoreAnterior,sizeof(PONTUACAO),1,arq)){
+            if(score.pontosJog1 > scoreAnterior.pontosJog1 || score.pontosJog2 > scoreAnterior.pontosJog2){
+               fseek(arq, 0, SEEK_SET);
+               fwrite(&score,sizeof(PONTUACAO),1,arq);
+            }
+        } else{
+            fseek(arq, 0, SEEK_SET);
+            fwrite(&score,sizeof(PONTUACAO),1,arq);
+        }
+        fclose(arq);
+    }
+}
+
+void leRecorde(PONTUACAO *score, PONTUACAO *scoreAnterior){
+    char opt;
+    FILE *arq;
+
+    system("@cls||clear");
+    printf("Deseja Carregar um recorde anterior?(s para sim, qualquer tecla para nao)\n");
+    scanf("%c",&opt);
+        if(!(arq = fopen("record.bin","r"))){
+            printf("Nao ha recordes anteriores");
+            if(!(arq = fopen("record.bin","w+b"))){
+                printf("Erro na abertura");
+                return;
+            }
+            scoreAnterior->pontosJog1 = 0;
+            scoreAnterior->pontosJog2 = 0;
+            fwrite(scoreAnterior, sizeof(PONTUACAO), 1, arq);
+            fclose(arq);
+            Sleep(1000);
+            system("@cls||clear");
+            return;
+        } else{
+            if(opt == 's' || opt == 'S'){
+            fseek(arq, 0, SEEK_SET);
+            fread(score,sizeof(PONTUACAO),1,arq);
+            }
+            fseek(arq, 0, SEEK_SET);
+            fread(scoreAnterior,sizeof(PONTUACAO),1,arq);
+            fclose(arq);
+        }
+    system("@cls||clear");
+}
+
+void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[],GOLEIRO goleiro1, GOLEIRO goleiro2, int lastKey1[], int lastKey2[], int n_jogadores, int tamGol, int *aceleracao){
     int i;
     static int dirX = 0, dirY = 0;
 
     colisoesBolaJogador(jogador1, bola, aceleracao, &dirX, &dirY, lastKey1, n_jogadores, 'X');
     colisoesBolaJogador(jogador2, bola, aceleracao, &dirX, &dirY, lastKey2, n_jogadores, 'L');
-
+    colisoesBolaGoleiro(goleiro1, bola, aceleracao, &dirX, &dirY, lastKey1, 'X');
+    colisoesBolaGoleiro(goleiro2, bola, aceleracao, &dirX, &dirY, lastKey2, 'L');
     //verifica colisoes com a parede
     if(bola->x+dirX <= 0 || bola->x+dirX >= WIDTH-1) dirX*=-1;
     if((bola->y+dirY <= 0 || bola->y+dirY >= HEIGHT-1) && !(bola->x >= LIMESQGOL + tamGol/2 && bola->x <= LIMDIRGOL - tamGol/2)) dirY*=-1;
@@ -377,6 +439,51 @@ void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastK
 
 }
 
+void colisoesBolaGoleiro(GOLEIRO goleiro, BOLA *bola, int *aceleracao,int *dirX, int *dirY, int lastKey[], int teclaDeChute){
+    int chute = 0;
+    if((bola->x <= goleiro.x + 1 && bola->x >= goleiro.x - 1  )&& (bola->y <= goleiro.y + 1 && bola->y >= goleiro.y - 1 )){
+            *aceleracao = 0;
+            bola->x = goleiro.x;
+            // Se for o goleiro do jogador 1
+            if(goleiro.y == 0){
+                bola->y = goleiro.y + 1;
+                *dirX = 0;
+                *dirY = 1;
+            }
+            // Se for o goleiro do jogador 2
+            if(goleiro.y == HEIGHT - 1){
+                bola->y = goleiro.y - 1;
+                *dirX = 0;
+                *dirY = -1;
+            }
+
+            if(lastKey[0]){
+                *dirX = 1;
+            }
+            if(lastKey[1]){
+                *dirX = -1;
+            }
+
+            if(GetAsyncKeyState(teclaDeChute)){
+                chute = 1;
+            }
+    }
+
+    GetAsyncKeyState(teclaDeChute);
+
+    if(chute == 1){
+        if(*dirX && !*dirY){ // Se a bola for para os lados
+            *aceleracao = 20;
+        } else if(*dirX && *dirY){ // Se a bola for para a diagonal
+            *aceleracao = 15;// Isso evita que a bota vá muito para frente quando o chute for para a diagonal
+        } else if(!*dirX && *dirY){ // Se a bola for para frente
+            *aceleracao = 20;
+        }
+        chute = 0;
+    }
+
+}
+
 void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dirX, int *dirY, int lastKey[], int n_jogadores, int teclaDeChute){
     static int cnt = 0;
     int chute = 0;
@@ -388,7 +495,7 @@ void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dir
     //if((posX == jogador[0].x && posY == jogador[0].y)){
     for(i = 0; i < n_jogadores; i++){
     if((bola->x <= jogador[i].x + 1 && bola->x >= jogador[i].x - 1  )&& (bola->y <= jogador[i].y + 1 && bola->y >= jogador[i].y - 1 )){
-        //*aceleracao = 1;
+        *aceleracao = 0;
         if(lastKey[0] == 1 && lastKey[2] == 1){
             bola->x = jogador[i].x + 1;
             bola->y = jogador[i].y - 1;
@@ -503,8 +610,8 @@ void resetaPosicoesGol(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], JOGAD
 
 }
 
-void imprimeTempoPontuacao(int t, PONTUACAO score){
-    printf("Tempo: %*d\tTime 1: %d\tTime 2: %d\t", 2, t, score.pontosJog1, score.pontosJog2);
+void imprimeTempoPontuacao(int t, PONTUACAO score, PONTUACAO scoreAnterior){
+    printf("Tempo: %*d\tTime 1: %d\tTime 2: %d\t\n RECORDE:\tTime 1: %d\tTime2: %d\t", 3, t, score.pontosJog1, score.pontosJog2, scoreAnterior.pontosJog1, scoreAnterior.pontosJog2);
 }
 
 void le_texto (char texto[ ], int size_texto) // string: ponteiro implícito
