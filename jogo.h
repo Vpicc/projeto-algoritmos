@@ -4,7 +4,7 @@
 #include <time.h>
 
 #define COLUNAS 65
-#define LINHAS 62
+#define LINHAS 64
 #define MAXLETRAS 20
 #define FORMACAO_X 60
 #define FORMACAO_Y 30
@@ -23,7 +23,9 @@ typedef struct{
     int x;
     int y;
 } BOLA;
-
+typedef struct{
+    int x;
+} GOLEIRO;
 void setCursor(int x, int y)
 {
     COORD coordinate;
@@ -33,25 +35,31 @@ void setCursor(int x, int y)
     SetConsoleCursorPosition(screen, coordinate);
 }
 
-void iniciaJogo(char mat[][COLUNAS], int tempo)
+void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGol)
 {
     // Numero maximo de jogadores em campo: 11
     JOGADOR jogador1[MAXJOGADORES];
     JOGADOR jogador2[MAXJOGADORES];
+    GOLEIRO goleiro1;
+    GOLEIRO goleiro2;
     int n_jogadores = 0;
     BOLA bola;
     bola.x = COLUNAS/2;
     bola.y = LINHAS/2;
     int i;
-    int start = tempo + (clock())/CLOCKS_PER_SEC;
-    int t = start;
+    int start;
+    int t;
     int lastKey1[4] = {0};
     int lastKey2[4] = {0};
-    int velocidadeInicial = 1;
     int velocidade1 = velocidadeInicial;
     int velocidade2 = velocidadeInicial;
 
+    // Carrega a formação em arquivo de texto e retorna o numero de jogadores
     n_jogadores = carregaFormacao(jogador1,jogador2);
+
+    // Inicia contagem de tempo
+    start = tempo + (clock())/CLOCKS_PER_SEC;
+    t = start;
 
     if(n_jogadores > 0){
     while(t) // Enquanto a tecla ESC nao for pressionada
@@ -60,20 +68,31 @@ void iniciaJogo(char mat[][COLUNAS], int tempo)
         t = start - clock()/CLOCKS_PER_SEC;
         printf("Tempo: %*d\t", 2, t);
 
+            //movimentoGoleiro();
             movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
             movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
 
             movimentoBola(&bola, jogador1, jogador2, lastKey1, lastKey2, n_jogadores);
 
 
-        setCursor(0, 0); //Altera a posicao do cursor para o inicio
+        setCursor(0, 0); // Altera a posicao do cursor para o inicio
 
-        desenhaTela(jogador1, jogador2, bola, mat, n_jogadores);
+        desenhaTela(jogador1, jogador2, bola, mat, n_jogadores, tamGol);
 
         Sleep(1000/30); //30 frames por segundo
+
+        // Limpando o buffer a cada frame
+        if(kbhit()){
+            getch();
+        }
     }
     }
+    // Limpa a tela
     system("@cls||clear");
+    printf("Fim de jogo\n");
+    Sleep(2000);
+
+
 }
 
 // Funcao de movimentacao de todos os personagens do jogador 1
@@ -81,6 +100,7 @@ void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
     int i, j;
     int flag[4] = {0};
     int flagParede[4] = {0};
+
 
     //  velocidade Define a velocidade dos jogadores
     if(*velocidade == 0){
@@ -171,6 +191,7 @@ void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
     int i, j;
     int flag[4] = {0};
     int flagParede[4] = {0};
+
     if(*velocidade == 0){
             if(GetAsyncKeyState(39)){
                 flag[0] = 1;
@@ -255,8 +276,8 @@ void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastK
     static int aceleracao = 0;
     static int dirX = 0, dirY = 0;
 
-    colisoesBolaJogador(jogador1, bola, &aceleracao, &dirX, &dirY, lastKey1, n_jogadores);
-    colisoesBolaJogador(jogador2, bola, &aceleracao, &dirX, &dirY, lastKey2, n_jogadores);
+    colisoesBolaJogador(jogador1, bola, &aceleracao, &dirX, &dirY, lastKey1, n_jogadores, 'X');
+    colisoesBolaJogador(jogador2, bola, &aceleracao, &dirX, &dirY, lastKey2, n_jogadores, 'L');
 
     //verifica colisoes com a parede
     if(bola->x+dirX <= 0 || bola->x+dirX >= WIDTH-1) dirX*=-1;
@@ -282,7 +303,7 @@ void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastK
 
 }
 
-void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dirX, int *dirY, int lastKey[], int n_jogadores){
+void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dirX, int *dirY, int lastKey[], int n_jogadores, int teclaDeChute){
     static int cnt = 0;
     int chute = 0;
     int i;
@@ -347,7 +368,7 @@ void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dir
         // TODO: inversao de direcao
 
         // Chute longo
-        if(GetAsyncKeyState('X')){
+        if(GetAsyncKeyState(teclaDeChute)){
             chute = 1;
             cnt = 0;
         }
@@ -356,7 +377,7 @@ void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dir
 
 
     // Faz o chute só funcionar quando esta encostado na bola e apertou a tecla de chute
-    GetAsyncKeyState('X');
+    GetAsyncKeyState(teclaDeChute);
 
     // Se a tecla de chute longo foi pressionada
     if(chute == 1){
@@ -454,13 +475,13 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
 }
 
 // Funcao que desenha o jogo
-void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], BOLA bola, char mat[][COLUNAS], int n_jogadores){
+void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], BOLA bola, char mat[][COLUNAS], int n_jogadores, int tamGol){
     int i, j, k;
     for(i=0; i<HEIGHT; i++){
             for(j=0; j<WIDTH; j++){
                 if(i == 0 || j == 0 || i == LINHAS-1 || j == COLUNAS -1){
                     mat[i][j] = '#';
-                    if(j >= 25 && j<= 37){
+                    if(j >= 25 + tamGol/2 && j<= 39 - tamGol/2){
                         mat[i][j] = ' ';
                     }
                 } else{
