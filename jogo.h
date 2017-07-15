@@ -9,6 +9,8 @@
 #define FORMACAO_X 60
 #define FORMACAO_Y 30
 #define MAXJOGADORES 11
+#define LIMESQGOL 25
+#define LIMDIRGOL 39
 
 #define WIDTH COLUNAS
 #define HEIGHT LINHAS
@@ -19,13 +21,22 @@ typedef struct{
     int y;
 } JOGADOR;
 
+// cria o tipo bola
 typedef struct{
     int x;
     int y;
 } BOLA;
+// cria o tipo goleiro
 typedef struct{
     int x;
 } GOLEIRO;
+
+typedef struct{
+    int pontosJog1;
+    int pontosJog2;
+} PONTUACAO;
+
+// funcao que escolhe posicao do cursor
 void setCursor(int x, int y)
 {
     COORD coordinate;
@@ -39,23 +50,34 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
 {
     // Numero maximo de jogadores em campo: 11
     JOGADOR jogador1[MAXJOGADORES];
+    JOGADOR posicaoInicialJogador1[MAXJOGADORES];
     JOGADOR jogador2[MAXJOGADORES];
+    JOGADOR posicaoInicialJogador2[MAXJOGADORES];
     GOLEIRO goleiro1;
     GOLEIRO goleiro2;
-    int n_jogadores = 0;
     BOLA bola;
-    bola.x = COLUNAS/2;
-    bola.y = LINHAS/2;
     int i;
     int start;
     int t;
+    int aceleracao = 0;
     int lastKey1[4] = {0};
     int lastKey2[4] = {0};
     int velocidade1 = velocidadeInicial;
     int velocidade2 = velocidadeInicial;
+    PONTUACAO pontosDoJogo;
+    pontosDoJogo.pontosJog1 = 0;
+    pontosDoJogo.pontosJog2 = 0;
+    bola.x = COLUNAS/2;
+    bola.y = LINHAS/2;
+    int n_jogadores = 0;
 
     // Carrega a formação em arquivo de texto e retorna o numero de jogadores
     n_jogadores = carregaFormacao(jogador1,jogador2);
+    // Salva as posicoes iniciais
+            for(i = 0; i < n_jogadores; i++){
+            posicaoInicialJogador1[i] = jogador1[i];
+            posicaoInicialJogador2[i] = jogador2[i];
+        }
 
     // Inicia contagem de tempo
     start = tempo + (clock())/CLOCKS_PER_SEC;
@@ -66,13 +88,21 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
     {
 
         t = start - clock()/CLOCKS_PER_SEC;
-        printf("Tempo: %*d\t", 2, t);
-
+        //printf("Tempo: %*d\t", 2, t);
+        imprimeTempoPontuacao(t, pontosDoJogo);
             //movimentoGoleiro();
-            movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
-            movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
+        movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
+        movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
 
-            movimentoBola(&bola, jogador1, jogador2, lastKey1, lastKey2, n_jogadores);
+        movimentoBola(&bola, jogador1, jogador2, lastKey1, lastKey2, n_jogadores, tamGol, &aceleracao);
+
+        scoreDoJogo(bola, &pontosDoJogo);
+
+        resetaPosicoesGol(&bola, jogador1, jogador2, posicaoInicialJogador1, posicaoInicialJogador2, n_jogadores, &aceleracao);
+
+
+
+
 
 
         setCursor(0, 0); // Altera a posicao do cursor para o inicio
@@ -271,27 +301,26 @@ void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
 
 }
 
-void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastKey1[], int lastKey2[], int n_jogadores){
+void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], int lastKey1[], int lastKey2[], int n_jogadores, int tamGol, int *aceleracao){
     int i;
-    static int aceleracao = 0;
     static int dirX = 0, dirY = 0;
 
-    colisoesBolaJogador(jogador1, bola, &aceleracao, &dirX, &dirY, lastKey1, n_jogadores, 'X');
-    colisoesBolaJogador(jogador2, bola, &aceleracao, &dirX, &dirY, lastKey2, n_jogadores, 'L');
+    colisoesBolaJogador(jogador1, bola, aceleracao, &dirX, &dirY, lastKey1, n_jogadores, 'X');
+    colisoesBolaJogador(jogador2, bola, aceleracao, &dirX, &dirY, lastKey2, n_jogadores, 'L');
 
     //verifica colisoes com a parede
     if(bola->x+dirX <= 0 || bola->x+dirX >= WIDTH-1) dirX*=-1;
-    if(bola->y+dirY <= 0 || bola->y+dirY >= HEIGHT-1) dirY*=-1;
+    if((bola->y+dirY <= 0 || bola->y+dirY >= HEIGHT-1) && !(bola->x >= LIMESQGOL + tamGol/2 && bola->x <= LIMDIRGOL - tamGol/2)) dirY*=-1;
 
 
     //movimenta a bola
-    if(aceleracao > 0){
+    if(*aceleracao > 0){
         bola->x = bola->x + dirX;
         bola->y = bola->y + dirY;
 
-        aceleracao = aceleracao - 1;
+        *aceleracao = *aceleracao - 1;
 
-        printf("ACELERACAO: %d", aceleracao);
+        printf("ACELERACAO: %d", *aceleracao);
     }
     for(i = 0; i < 4; i++){
         lastKey1[i] = 0;
@@ -406,6 +435,33 @@ void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dir
 
 }
 
+void scoreDoJogo(BOLA bola,PONTUACAO *pontosDoJogo){
+    if(bola.y > HEIGHT){
+        pontosDoJogo->pontosJog1 += 1;
+    }
+    if(bola.y < 0){
+        pontosDoJogo->pontosJog2 += 1;
+    }
+}
+
+void resetaPosicoesGol(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], JOGADOR posicaoInicialJogador1[], JOGADOR posicaoInicialJogador2[], int n_jogadores, int *aceleracao){
+    int i;
+    if(bola->y > HEIGHT || bola->y < 0){
+        *aceleracao = 0;
+        bola->x = COLUNAS/2;
+        bola->y = LINHAS/2;
+        for(i = 0; i < n_jogadores; i++){
+            jogador1[i] = posicaoInicialJogador1[i];
+            jogador2[i] = posicaoInicialJogador2[i];
+        }
+    }
+
+}
+
+void imprimeTempoPontuacao(int t, PONTUACAO score){
+    printf("Tempo: %*d\tTime 1: %d\tTime 2:%d\t", 2, t, score.pontosJog1, score.pontosJog2);
+}
+
 void le_texto (char texto[ ], int size_texto) // string: ponteiro implícito
 {
      char dummy[size_texto + 1]; // cabe um caractere a mais do que no texto:
@@ -481,7 +537,7 @@ void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], BOLA bola, char mat[][C
             for(j=0; j<WIDTH; j++){
                 if(i == 0 || j == 0 || i == LINHAS-1 || j == COLUNAS -1){
                     mat[i][j] = '#';
-                    if(j >= 25 + tamGol/2 && j<= 39 - tamGol/2){
+                    if(j >= LIMESQGOL + tamGol/2 && j<= LIMDIRGOL - tamGol/2){
                         mat[i][j] = ' ';
                     }
                 } else{
