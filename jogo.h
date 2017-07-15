@@ -17,6 +17,12 @@
 #define FLECHACIMA 38
 #define FLECHABAIXO 40
 
+#define CHUTELONGO 20
+#define CHUTELONGODIAG 15
+#define CHUTECURTO 4
+#define CHUTECURTODIAG 3
+#define CHUTECURTOLADOS 6
+
 #define WIDTH COLUNAS
 #define HEIGHT LINHAS
 
@@ -77,7 +83,7 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
     pontosDoJogo.pontosJog2 = 0;
     bola.x = COLUNAS/2;
     bola.y = LINHAS/2;
-    int n_jogadores = 0;
+    int n_jogadores = -1;
     goleiro1.y = 0;
     goleiro1.x = WIDTH/2;
     goleiro2.y = HEIGHT-1;
@@ -95,7 +101,7 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
     // Inicia contagem de tempo
     start = clock();
 
-    if(n_jogadores > 0){
+    if(n_jogadores >= 0){
     while(t) // Enquanto o tempo nao acabar
     {
         t = tempo - (int)(clock()-start)/CLOCKS_PER_SEC;
@@ -308,7 +314,7 @@ void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
     }
 
 }
-
+// Funcao que comanda o movimento automatico do goleiro e manual
 void movimentoGoleiro(BOLA bola, GOLEIRO *goleiro, int esquerda, int direita, int velocidade, int velocidadeInicial, int lastKey[], int tamGol){
     // Quando o goleiro está conduzindo a bola, o jogador movimenta o goleiro
         if((bola.x <= goleiro->x + 1 && bola.x >= goleiro->x - 1  )&& (bola.y <= goleiro->y + 1 && bola.y >= goleiro->y - 1 )){
@@ -349,32 +355,35 @@ void movimentoGoleiro(BOLA bola, GOLEIRO *goleiro, int esquerda, int direita, in
 
 }
 
+// Funcao que grava o recorde de partidas
 void gravaRecorde(PONTUACAO score){
     FILE *arq;
-
     PONTUACAO scoreAnterior;
+    // Se não existir o arquivo, cria
     if(!(arq = fopen("record.bin", "r+b"))){
         if(!(arq = fopen("record.bin","w+b"))){
             printf("Erro na abertura");
             return;
         }
+        fclose(arq);
     } else{
         // Garante que o ponteiro esteja no inicio do arquivo
         fseek(arq, 0, SEEK_SET);
 
+        // Le o score anterior e compara com o atual
         if(fread(&scoreAnterior,sizeof(PONTUACAO),1,arq)){
             if(score.pontosJog1 > scoreAnterior.pontosJog1 || score.pontosJog2 > scoreAnterior.pontosJog2){
                fseek(arq, 0, SEEK_SET);
                fwrite(&score,sizeof(PONTUACAO),1,arq);
             }
-        } else{
+        } else{ // Se nao existir recorde, grava o atual como recorde
             fseek(arq, 0, SEEK_SET);
             fwrite(&score,sizeof(PONTUACAO),1,arq);
         }
         fclose(arq);
     }
 }
-
+// Funcao que le recorde anterior
 void leRecorde(PONTUACAO *score, PONTUACAO *scoreAnterior){
     char opt;
     FILE *arq;
@@ -382,7 +391,7 @@ void leRecorde(PONTUACAO *score, PONTUACAO *scoreAnterior){
     system("@cls||clear");
     printf("Deseja Carregar um recorde anterior?(s para sim, qualquer tecla para nao)\n");
     scanf("%c",&opt);
-        if(!(arq = fopen("record.bin","r"))){
+        if(!(arq = fopen("record.bin","r"))){ //Se nao ha record.bin, cria um e seta como zero o recorde anterior
             printf("Nao ha recordes anteriores");
             if(!(arq = fopen("record.bin","w+b"))){
                 printf("Erro na abertura");
@@ -395,18 +404,18 @@ void leRecorde(PONTUACAO *score, PONTUACAO *scoreAnterior){
             Sleep(1000);
             system("@cls||clear");
             return;
-        } else{
-            if(opt == 's' || opt == 'S'){
+        } else{ // se houyer recordes anteriores
+            if(opt == 's' || opt == 'S'){ // Se o usuario quiser carregar recordes anteriores
             fseek(arq, 0, SEEK_SET);
             fread(score,sizeof(PONTUACAO),1,arq);
-            }
+            } // Carrega o recorde anterior para mostrar na tela
             fseek(arq, 0, SEEK_SET);
             fread(scoreAnterior,sizeof(PONTUACAO),1,arq);
             fclose(arq);
         }
     system("@cls||clear");
 }
-
+// Funcao que controla a direcao, aceleracao e colisao da bola
 void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[],GOLEIRO goleiro1, GOLEIRO goleiro2, int lastKey1[], int lastKey2[], int n_jogadores, int tamGol, int *aceleracao){
     int i;
     static int dirX = 0, dirY = 0;
@@ -426,8 +435,6 @@ void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[],GOLEIRO go
         bola->y = bola->y + dirY;
 
         *aceleracao = *aceleracao - 1;
-
-        printf("ACELERACAO: %d", *aceleracao);
     }
     for(i = 0; i < 4; i++){
         lastKey1[i] = 0;
@@ -439,6 +446,7 @@ void movimentoBola(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[],GOLEIRO go
 
 }
 
+// Funcao que checa a posicao da bola em relacao ao goleiro e tambem controla o chute da bola por parte do goleiro
 void colisoesBolaGoleiro(GOLEIRO goleiro, BOLA *bola, int *aceleracao,int *dirX, int *dirY, int lastKey[], int teclaDeChute){
     int chute = 0;
     if((bola->x <= goleiro.x + 1 && bola->x >= goleiro.x - 1  )&& (bola->y <= goleiro.y + 1 && bola->y >= goleiro.y - 1 )){
@@ -473,26 +481,25 @@ void colisoesBolaGoleiro(GOLEIRO goleiro, BOLA *bola, int *aceleracao,int *dirX,
 
     if(chute == 1){
         if(*dirX && !*dirY){ // Se a bola for para os lados
-            *aceleracao = 20;
+            *aceleracao = CHUTELONGO;
         } else if(*dirX && *dirY){ // Se a bola for para a diagonal
-            *aceleracao = 15;// Isso evita que a bota vá muito para frente quando o chute for para a diagonal
+            *aceleracao = CHUTELONGODIAG;// Isso evita que a bota vá muito para frente quando o chute for para a diagonal
         } else if(!*dirX && *dirY){ // Se a bola for para frente
-            *aceleracao = 20;
+            *aceleracao = CHUTELONGO;
         }
         chute = 0;
     }
 
 }
 
+// Funcao que checa a posicao da bola em relacao ao jogador e tambem controla o chute da bola por parte do jogador
 void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dirX, int *dirY, int lastKey[], int n_jogadores, int teclaDeChute){
     static int cnt = 0;
     int chute = 0;
     int i;
 
-     //if((posX <= jogador[0].x + 1 && posX >= jogador[0].x - 1  )&& (posY <= jogador[0].y + 1 && posY >= jogador[0].y - 1 ))
-    // Colisoes com jogador LastKey => 0 = Direita 1 = Esquerda 2 = Cima 3 = Baixo
 
-    //if((posX == jogador[0].x && posY == jogador[0].y)){
+    // Colisoes com jogador LastKey => 0 = Direita 1 = Esquerda 2 = Cima 3 = Baixo
     for(i = 0; i < n_jogadores; i++){
     if((bola->x <= jogador[i].x + 1 && bola->x >= jogador[i].x - 1  )&& (bola->y <= jogador[i].y + 1 && bola->y >= jogador[i].y - 1 )){
         *aceleracao = 0;
@@ -563,11 +570,11 @@ void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dir
     // Se a tecla de chute longo foi pressionada
     if(chute == 1){
         if(*dirX && !*dirY){ // Se a bola for para os lados
-            *aceleracao = 20;
+            *aceleracao = CHUTELONGO;
         } else if(*dirX && *dirY){ // Se a bola for para a diagonal
-            *aceleracao = 15;// Isso evita que a bota vá muito para frente quando o chute for para a diagonal
+            *aceleracao = CHUTELONGODIAG;// Isso evita que a bota vá muito para frente quando o chute for para a diagonal
         } else if(!*dirX && *dirY){ // Se a bola for para frente
-            *aceleracao = 20;
+            *aceleracao = CHUTELONGO;
         }
         chute = 0;
     }
@@ -575,18 +582,18 @@ void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dir
     if(cnt == 3){
 
         if(*dirX != 0 && !*dirY){ // Se a bola for para os lados
-            *aceleracao = 6;
+            *aceleracao = CHUTECURTOLADOS;
         } else if(*dirX && *dirY){ // Se a bola for para a diagonal
-            *aceleracao = 3; // Isso evita que a bota vá muito para frente quando o chute for para a diagonal
+            *aceleracao = CHUTECURTODIAG; // Isso evita que a bota vá muito para frente quando o chute for para a diagonal
         } else if(!*dirX && *dirY){ // Se a bola for para frente
-            *aceleracao = 4;
+            *aceleracao = CHUTECURTO;
         }
         cnt = 0;
     }
 
 
 }
-
+// Funcao que cuida da pontuacao do jogo
 void scoreDoJogo(BOLA bola,PONTUACAO *pontosDoJogo){
     if(bola.y > HEIGHT){
         pontosDoJogo->pontosJog1 += 1;
@@ -595,7 +602,7 @@ void scoreDoJogo(BOLA bola,PONTUACAO *pontosDoJogo){
         pontosDoJogo->pontosJog2 += 1;
     }
 }
-
+// Funcao que reseta as posicoes apos um gol
 void resetaPosicoesGol(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], JOGADOR posicaoInicialJogador1[], JOGADOR posicaoInicialJogador2[], int n_jogadores, int *aceleracao){
     int i;
     if(bola->y > HEIGHT || bola->y < 0){
@@ -609,11 +616,11 @@ void resetaPosicoesGol(BOLA *bola, JOGADOR jogador1[], JOGADOR jogador2[], JOGAD
     }
 
 }
-
+// Imprime o tempo, recorde e pontuacao na tela
 void imprimeTempoPontuacao(int t, PONTUACAO score, PONTUACAO scoreAnterior){
-    printf("Tempo: %*d\tTime 1: %d\tTime 2: %d\t\n RECORDE:\tTime 1: %d\tTime2: %d\t", 3, t, score.pontosJog1, score.pontosJog2, scoreAnterior.pontosJog1, scoreAnterior.pontosJog2);
+    printf("Tempo: %*d\tTime 1: %d\tTime 2: %d\t\nRECORDE:\tTime 1: %d\tTime2: %d\t", 3, t, score.pontosJog1, score.pontosJog2, scoreAnterior.pontosJog1, scoreAnterior.pontosJog2);
 }
-
+// Funcao de leitura de texto
 void le_texto (char texto[ ], int size_texto) // string: ponteiro implícito
 {
      char dummy[size_texto + 1]; // cabe um caractere a mais do que no texto:
@@ -650,11 +657,11 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
         Sleep(2000);
         n_jogadores = 3;
         jogador1[0].x = 25;
-        jogador1[0].y = 7;
+        jogador1[0].y = 20;
         jogador1[1].x = 35;
-        jogador1[1].y = 7;
+        jogador1[1].y = 20;
         jogador1[2].x = 30;
-        jogador1[2].y = 10;
+        jogador1[2].y = 23;
 
         // Copia a formacao para o segundo jogador, espelhada
         for(i = 0; i < n_jogadores; i++){
@@ -676,11 +683,15 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
             jogador1[n_jogadores].y = i;
             n_jogadores++;
             }
-            if(n_jogadores > MAXJOGADORES){
-                n_jogadores = MAXJOGADORES;
+            if(n_jogadores > MAXJOGADORES - 1){
+                n_jogadores = MAXJOGADORES - 1;
             }
         }
     }
+
+        for(i = 0; i < n_jogadores; i++){
+            jogador1[i].y = jogador1[i].y + (HEIGHT/2 - 9 - jogador1[n_jogadores - 1].y);
+        }
 
 
 
