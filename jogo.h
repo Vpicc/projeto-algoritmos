@@ -134,7 +134,9 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
     // Limpa a tela
     system("@cls||clear");
     printf("Fim de jogo\n");
-    Sleep(2000);
+    printf("\aPontuacao Final:\nTime 1: %d\t Time 2: %d",pontosDoJogo.pontosJog1,pontosDoJogo.pontosJog2);
+
+    Sleep(4000);
 
 
 }
