@@ -12,6 +12,11 @@
 #define LIMESQGOL 25
 #define LIMDIRGOL 39
 
+#define FLECHADIR 39
+#define FLECHAESQ 37
+#define FLECHACIMA 38
+#define FLECHABAIXO 40
+
 #define WIDTH COLUNAS
 #define HEIGHT LINHAS
 
@@ -47,8 +52,9 @@ void setCursor(int x, int y)
     SetConsoleCursorPosition(screen, coordinate);
 }
 
-void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGol)
+void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
 {
+    char mat[LINHAS][COLUNAS];
     // Numero maximo de jogadores em campo: 11
     JOGADOR jogador1[MAXJOGADORES];
     JOGADOR posicaoInicialJogador1[MAXJOGADORES];
@@ -58,7 +64,7 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
     GOLEIRO goleiro2;
     BOLA bola;
     int i;
-    int start;
+    clock_t start;
     int t;
     int aceleracao = 0;
     int lastKey1[4] = {0};
@@ -85,15 +91,14 @@ void iniciaJogo(char mat[][COLUNAS], int tempo, int velocidadeInicial, int tamGo
             posicaoInicialJogador2[i] = jogador2[i];
         }
     leRecorde(&pontosDoJogo,&pontosAnteriores);
+
     // Inicia contagem de tempo
-    start = tempo + (clock())/CLOCKS_PER_SEC;
-    t = start;
+    start = clock();
 
     if(n_jogadores > 0){
-    while(t) // Enquanto a tecla ESC nao for pressionada
+    while(t) // Enquanto o tempo nao acabar
     {
-
-        t = start - clock()/CLOCKS_PER_SEC;
+        t = tempo - (int)(clock()-start)/CLOCKS_PER_SEC;
         //printf("Tempo: %*d\t", 2, t);
         imprimeTempoPontuacao(t, pontosDoJogo, pontosAnteriores);
         movimentoGoleiro(bola, &goleiro1, 'A', 'D', velocidade1, velocidadeInicial, lastKey1,tamGol);
@@ -231,22 +236,22 @@ void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
     int flagParede[4] = {0};
 
     if(*velocidade == 0){
-            if(GetAsyncKeyState(39)){
+            if(GetAsyncKeyState(FLECHADIR)){
                 flag[0] = 1;
                 lastKey[0] = 1;
 
             }
-            if(GetAsyncKeyState(37)){
+            if(GetAsyncKeyState(FLECHAESQ)){
                 flag[1] = 1;
 
                 lastKey[1] = 1;
             }
-            if(GetAsyncKeyState(38)){
+            if(GetAsyncKeyState(FLECHACIMA)){
                 flag[2] = 1;
 
                 lastKey[2] = 1;
             }
-            if(GetAsyncKeyState(40)){
+            if(GetAsyncKeyState(FLECHABAIXO)){
                 flag[3] = 1;
 
                 lastKey[3] = 1;
@@ -665,10 +670,10 @@ int carregaFormacao(JOGADOR jogador1[], JOGADOR jogador2[]){
             if(n_jogadores > MAXJOGADORES){
                 n_jogadores = MAXJOGADORES;
             }
-            printf("%c", mat[i][j]);
         }
-        printf("\n");
     }
+
+
 
     // Copia a formacao para o segundo jogador, espelhada
     for(i = 0; i < n_jogadores; i++){

@@ -31,7 +31,7 @@ int main(){
     switch(opt){
         case 1:
             // Opcao 1: Inicia o Jogo
-            iniciaJogo(mat,tempo,velocidade,tamGol);
+            iniciaJogo(tempo,velocidade,tamGol);
             break;
         case 2:
             // Opcao 2: Faz a escolha de tamanho de gol, velocidade e tempo.
