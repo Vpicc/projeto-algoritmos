@@ -19,13 +19,15 @@ void menuPrincipal(){
 int escolheTamanho(){
     int tamgol;
     int opt1;
-    printf("1 - 14 metros\n");
-    printf("2 - 8 metros\n");
 
-    fflush(stdin);
-    scanf("%d", &opt1);
+
 
     do{
+        printf("1 - 14 metros\n");
+        printf("2 - 8 metros\n");
+
+        fflush(stdin);
+        scanf("%d", &opt1);
         system("@cls||clear");
         switch(opt1){
             case 1:
@@ -44,14 +46,16 @@ int escolheTamanho(){
 int escolheVelocidade(){
     int opt2;
     int velocidade;
-    printf("1 - Velocidade normal\n");
-    printf("2 - Metade da Velocidade\n");
-    printf("3 - 1/3 da Velocidade\n");
 
-    fflush(stdin);
-    scanf("%d", &opt2);
+
 
     do{
+        printf("1 - Velocidade normal\n");
+        printf("2 - Metade da Velocidade\n");
+        printf("3 - 1/3 da Velocidade\n");
+
+        fflush(stdin);
+        scanf("%d", &opt2);
         system("@cls||clear");
         switch(opt2){
             case 1:
@@ -64,7 +68,7 @@ int escolheVelocidade(){
                 velocidade = 5;
                 break;
             default:
-                printf("Opcao Invalida.");
+                printf("Opcao Invalida.\n");
         }
     }while(opt2 > 3 || opt2 < 1);
 

@@ -92,10 +92,10 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
     // Carrega a formação em arquivo de texto e retorna o numero de jogadores
     n_jogadores = carregaFormacao(jogador1,jogador2);
     // Salva as posicoes iniciais
-            for(i = 0; i < n_jogadores; i++){
-            posicaoInicialJogador1[i] = jogador1[i];
-            posicaoInicialJogador2[i] = jogador2[i];
-        }
+    for(i = 0; i < n_jogadores; i++){
+        posicaoInicialJogador1[i] = jogador1[i];
+        posicaoInicialJogador2[i] = jogador2[i];
+    }
     leRecorde(&pontosDoJogo,&pontosAnteriores);
 
     // Inicia contagem de tempo
@@ -141,7 +141,7 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
 
 }
 
-// Funcao de movimentacao de todos os personagens do jogadmovimentoGoleiro(bola,goleiro1,'D','A',&velocidade,velocidadeInicial,lastKey1);or 1
+// Funcao de movimentacao de todos os personagens do jogador 1
 void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
     int i, j;
     int flag[4] = {0};
