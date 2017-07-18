@@ -26,6 +26,7 @@
 #define CONDUCAO 4
 
 #define CHARQUADRADO 219
+#define CHARBOLA 254
 
 #define WIDTH COLUNAS
 #define HEIGHT LINHAS
@@ -641,7 +642,7 @@ void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], GOLEIRO goleiro1, GOLEI
                 } else{
                     mat[i][j] = ' ';
                 }
-                if(bola.x == j && bola.y == i) mat[i][j] = 254;
+                if(bola.x == j && bola.y == i) mat[i][j] = CHARBOLA;
                 for(k = 0; k < n_jogadores; k++){
                     if(jogador1[k].x == j && jogador1[k].y == i) mat[i][j] = 'W';
                     if(jogador2[k].x == j && jogador2[k].y == i) mat[i][j] = 'M';
