@@ -93,7 +93,7 @@ void imprimeOpcoes(){
 
 }
 
-int menuOpcoes(int *tamGol,int *velocidade, int *tempo){
+void menuOpcoes(int *tamGol,int *velocidade, int *tempo){
     int opt;
 
 
@@ -123,7 +123,5 @@ int menuOpcoes(int *tamGol,int *velocidade, int *tempo){
 
     }while(opt!=4);
 
-    // Evita um bug em que a velocidade vira zero quando o jogo é jogado uma vez
-    return *velocidade;
 }
 
