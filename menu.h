@@ -25,6 +25,7 @@ int escolheTamanho(){
     do{
         printf("1 - 14 metros\n");
         printf("2 - 8 metros\n");
+        printf("Sua opcao: ");
 
         fflush(stdin);
         scanf("%d", &opt1);
@@ -53,6 +54,7 @@ int escolheVelocidade(){
         printf("1 - Velocidade normal\n");
         printf("2 - Metade da Velocidade\n");
         printf("3 - 1/3 da Velocidade\n");
+        printf("Sua opcao: ");
 
         fflush(stdin);
         scanf("%d", &opt2);
@@ -78,6 +80,7 @@ int escolheVelocidade(){
 int escolheTempo(){
     int tempo;
     printf("Digite o tempo de jogo (em segundos)\n");
+    printf("Sua opcao: ");
     fflush(stdin);
     scanf("%d", &tempo);
     return tempo;

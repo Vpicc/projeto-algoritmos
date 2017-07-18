@@ -23,6 +23,10 @@
 #define CHUTECURTODIAG 3
 #define CHUTECURTOLADOS 6
 
+#define CONDUCAO 4
+
+#define CHARQUADRADO 219
+
 #define WIDTH COLUNAS
 #define HEIGHT LINHAS
 
@@ -109,8 +113,8 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
         imprimeTempoPontuacao(t, pontosDoJogo, pontosAnteriores);
         movimentoGoleiro(bola, &goleiro1, 'A', 'D', velocidade1, velocidadeInicial, lastKey1,tamGol);
         movimentoGoleiro(bola, &goleiro2, 37, 39, velocidade2, velocidadeInicial, lastKey2,tamGol);
-        movimentoJogador1(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores);
-        movimentoJogador2(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores);
+        movimentoJogador(jogador1, lastKey1, &velocidade1, velocidadeInicial, n_jogadores,'W','S','A','D');
+        movimentoJogador(jogador2, lastKey2, &velocidade2, velocidadeInicial, n_jogadores,FLECHACIMA,FLECHABAIXO,FLECHAESQ,FLECHADIR);
 
         movimentoBola(&bola, jogador1, jogador2, goleiro1, goleiro2, lastKey1, lastKey2, n_jogadores, tamGol, &aceleracao);
 
@@ -142,7 +146,7 @@ void iniciaJogo(int tempo, int velocidadeInicial, int tamGol)
 }
 
 // Funcao de movimentacao de todos os personagens do jogador 1
-void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
+void movimentoJogador(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores, int cima, int baixo, int esquerda, int direita){
     int i, j;
     int flag[4] = {0};
     int flagParede[4] = {0};
@@ -151,22 +155,22 @@ void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
     //  velocidade Define a velocidade dos jogadores
     if(*velocidade == 0){
             // A flag detecta qual tecla foi pressionada e lastKey detecta a ultima tecla que foi pressionada
-            if(GetAsyncKeyState('D')){
+            if(GetAsyncKeyState(direita)){
                 flag[0] = 1;
                 lastKey[0] = 1;
 
             }
-            if(GetAsyncKeyState('A')){
+            if(GetAsyncKeyState(esquerda)){
                 flag[1] = 1;
 
                 lastKey[1] = 1;
             }
-            if(GetAsyncKeyState('W')){
+            if(GetAsyncKeyState(cima)){
                 flag[2] = 1;
 
                 lastKey[2] = 1;
             }
-            if(GetAsyncKeyState('S')){
+            if(GetAsyncKeyState(baixo)){
                 flag[3] = 1;
 
                 lastKey[3] = 1;
@@ -231,91 +235,6 @@ void movimentoJogador1(JOGADOR jogador[], int lastKey[],int *velocidade, int vel
 
 }
 
-// Funcao de movimentacao de todos os personagens do jogador 2, Cópia da funcao movimentoJogador1, só mudam as teclas que são checadas
-// Teclas checadas: flechas do teclado
-void movimentoJogador2(JOGADOR jogador[], int lastKey[],int *velocidade, int velocidadeInicial, int n_jogadores){
-    int i, j;
-    int flag[4] = {0};
-    int flagParede[4] = {0};
-
-    if(*velocidade == 0){
-            if(GetAsyncKeyState(FLECHADIR)){
-                flag[0] = 1;
-                lastKey[0] = 1;
-
-            }
-            if(GetAsyncKeyState(FLECHAESQ)){
-                flag[1] = 1;
-
-                lastKey[1] = 1;
-            }
-            if(GetAsyncKeyState(FLECHACIMA)){
-                flag[2] = 1;
-
-                lastKey[2] = 1;
-            }
-            if(GetAsyncKeyState(FLECHABAIXO)){
-                flag[3] = 1;
-
-                lastKey[3] = 1;
-            }
-
-
-            if(flag[0] == 1){
-                for(i = 0; i < n_jogadores; i++){
-                    if(jogador[i].x + 1 >= WIDTH - 1){
-                        flagParede[0] = 1;
-                    }
-                }
-                for(i = 0; i < n_jogadores; i++){
-                    if(flagParede[0] == 0)
-                        jogador[i].x+= 1;
-                }
-           }
-
-            if(flag[1] == 1){
-                for(i = 0; i < n_jogadores; i++){
-                    if(jogador[i].x - 1 <= 0){
-                      flagParede[1] = 1;
-                    }
-                }
-                for(i = 0; i < n_jogadores; i++){
-                    if(flagParede[1] == 0)
-                        jogador[i].x-= 1;
-                }
-           }
-
-            if(flag[2] == 1){
-                for(i = 0; i < n_jogadores; i++){
-                    if(jogador[i].y  - 1 <= 0){
-                        flagParede[2] = 1;
-                    }
-                }
-                 for(i = 0; i < n_jogadores; i++){
-                    if(flagParede[2] == 0){
-                        jogador[i].y-= 1;
-                    }
-                 }
-           }
-
-            if(flag[3] == 1){
-                for(i = 0; i < n_jogadores; i++){
-                    if(jogador[i].y + 1 >= HEIGHT-1){
-                        flagParede[3] = 1;
-                    }
-                }
-                for(i = 0; i < n_jogadores; i++){
-                    if(flagParede[3] == 0)
-                        jogador[i].y+= 1;
-                }
-           }
-
-        *velocidade = velocidadeInicial;
-    } else{
-        *velocidade -= 1;
-    }
-
-}
 // Funcao que comanda o movimento automatico do goleiro e manual
 void movimentoGoleiro(BOLA bola, GOLEIRO *goleiro, int esquerda, int direita, int velocidade, int velocidadeInicial, int lastKey[], int tamGol){
     // Quando o goleiro está conduzindo a bola, o jogador movimenta o goleiro
@@ -581,7 +500,7 @@ void colisoesBolaJogador(JOGADOR jogador[], BOLA *bola, int *aceleracao,int *dir
         chute = 0;
     }
     // Apos 2m de conducao, chuta
-    if(cnt == 3){
+    if(cnt == CONDUCAO){
 
         if(*dirX != 0 && !*dirY){ // Se a bola for para os lados
             *aceleracao = CHUTECURTOLADOS;
@@ -715,14 +634,14 @@ void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], GOLEIRO goleiro1, GOLEI
     for(i=0; i<HEIGHT; i++){
             for(j=0; j<WIDTH; j++){
                 if(i == 0 || j == 0 || i == LINHAS-1 || j == COLUNAS -1){
-                    mat[i][j] = '#';
+                    mat[i][j] = CHARQUADRADO;
                     if(j >= LIMESQGOL + tamGol/2 && j<= LIMDIRGOL - tamGol/2){
                         mat[i][j] = ' ';
                     }
                 } else{
                     mat[i][j] = ' ';
                 }
-                if(bola.x == j && bola.y == i) mat[i][j] = 'O';
+                if(bola.x == j && bola.y == i) mat[i][j] = 254;
                 for(k = 0; k < n_jogadores; k++){
                     if(jogador1[k].x == j && jogador1[k].y == i) mat[i][j] = 'W';
                     if(jogador2[k].x == j && jogador2[k].y == i) mat[i][j] = 'M';
@@ -732,6 +651,7 @@ void desenhaTela(JOGADOR jogador1[], JOGADOR jogador2[], GOLEIRO goleiro1, GOLEI
 
             }
             mat[i][j] = '\0';
+
             puts(mat[i]);
         }
 }
